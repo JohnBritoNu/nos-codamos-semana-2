@@ -1,4 +1,4 @@
-(ns clobank.alternative
+(ns clobank.logic
   (:require [clobank.db :as cb.db]
             [java-time :as jt]))
 
@@ -20,20 +20,6 @@
        (group-by :category)
        (map transform-group-with-sum)))
 
-(defn group-total-by-merchant
-  [ccs]
-  (->> ccs
-       (map :transactions)
-       (reduce into [])
-       (group-by :merchant)))
-
-(defn monthly-charge
-  [css]
-  (->> css
-       (map :transactions)
-       (reduce into [])
-       (when (= (jt/local-date :month-of-year)))))
-
 (defn format-transaction
   [transaction]
   (-> transaction
@@ -42,7 +28,6 @@
 
 (defn show-formatted-transactions
   [transaction]
-  (println transaction)
   (println "\nData:" (:date transaction)
            "\nValor:" (:amount transaction)
            "\nEstabelecimento:" (:merchant transaction)
@@ -60,18 +45,10 @@
        (group-total-by-category)
        println))
 
-(defn transactions-by-merchant []
-  (->> (cb.db/clobank-database)
-       (map get-all-credit-cards)
-       (group-total-by-merchant)
-       println))
-
 (defn list-transactions []
   (->> (cb.db/clobank-database)
        (map get-all-credit-cards)
        (map :transactions)
        (reduce into [])
        (map format-transaction)
-       println
-       ;(map show-formatted-transactions)
-       ))
+       (mapv show-formatted-transactions)))
